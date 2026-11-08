@@ -1,0 +1,6 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // This project's own skills live in .opencode/skills/ (auto-discovered).
+  // Listed explicitly so the intent is visible in version control.
+  "skills": ["./.opencode/skills"]
+}
