@@ -4,9 +4,11 @@
 [![OpenCode](https://img.shields.io/badge/OpenCode-v2-111827)](https://opencode.ai/)
 [![Local-first](https://img.shields.io/badge/local--first-127.0.0.1%20only-2563eb)](docs/SAFETY.md)
 [![No API keys stored](https://img.shields.io/badge/secrets-none%20stored-16a34a)](docs/SAFETY.md)
-[![License: MIT](https://img.shields.io/badge/License-MIT-f59e0b.svg)](LICENSE)
+[![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](LICENSE)
 
-**SkillForge** is a local web studio for creating, validating, installing, and tidying reusable [OpenCode](https://opencode.ai/) skills. It uses the **OpenCode already installed on your machine** (your providers, your sign-ins) — **no API keys stored here**, no extra provider SDKs.
+**SkillForge** is a local web studio for picking, customizing, validating, installing, and tidying reusable [OpenCode](https://opencode.ai/) skills. It uses the **OpenCode already installed on your machine** (your providers, your sign-ins) — **no API keys stored here**, no extra provider SDKs.
+
+> **Templates-first for now:** AI generation is turned off. Choose from 25 built-in templates (no API key needed), edit in the browser, validate, and install.
 
 > Build skills that work across GPT, Grok, Gemini, Claude, and local models: plain Markdown + YAML frontmatter, short trigger descriptions, lean numbered workflows, and detail in `references/` only when needed.
 
@@ -50,7 +52,7 @@ npm start          # serves the built UI + API on http://127.0.0.1:5174
 
 1. **Connect** — checks `opencode --version` and the live OpenCode service, lists your models and registered skills.
 2. **Choose location** — **Global** (`~/.config/opencode/skills/`, every project) or **Project** (`.opencode/skills/`, that project only).
-3. **Create** — pick a **template** (no generation), let your configured model draft a skill (stateless text generation — no tool/filesystem access), or write it yourself.
+3. **Create** — pick a **built-in template** (no AI generation, no API key needed) or start blank and write your own.
 4. **Review & install** — live validation, token-cost meter, ZIP export, then install with backup and OpenCode-side verification.
 5. **Tidy documentation** — scan for docs in the wrong place and move them into `docs/` with a manifest and one-click undo.
 
@@ -123,4 +125,4 @@ See [AGENTS.md](AGENTS.md) for coding-agent/project rules.
 
 ## License
 
-[MIT](LICENSE) © 2026 William Majanja
+[The Unlicense](LICENSE) — public domain.

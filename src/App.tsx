@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   AlertTriangle,
   ArrowDown,
@@ -10,7 +10,6 @@ import {
   Loader2,
   Plug,
   RotateCcw,
-  Sparkles,
   Wrench,
 } from "lucide-react";
 import { api, estimateTokens, slugify, type DocFinding, type SkillDraft, type StatusResponse, type Template, type ValidationResult } from "./api";
@@ -33,13 +32,9 @@ export function App() {
   const [statusBusy, setStatusBusy] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
 
-  const [modelKey, setModelKey] = useState<string>(""); // "" = OpenCode default
   const [scope, setScope] = useState<"global" | "project">("global");
   const [project, setProject] = useState(DEFAULT_PROJECT);
 
-  const [goal, setGoal] = useState("");
-  const [budget, setBudget] = useState<"lean" | "standard" | "detailed">("lean");
-  const [generating, setGenerating] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
 
   const [draft, setDraft] = useState<SkillDraft | null>(null);
@@ -93,11 +88,6 @@ export function App() {
   }, [draft?.id, scope, project]);
 
   const connected = !!status?.version && !status?.infoError;
-  const selectedModel = useMemo(() => {
-    if (!modelKey || !status) return null;
-    const m = status.models.find((x) => `${x.providerID}/${x.modelID}` === modelKey);
-    return m ? { providerID: m.providerID, modelID: m.modelID } : null;
-  }, [modelKey, status]);
 
   const canInstall = !!draft && !!validation?.valid && !installBusy && (!scope || scope === "global" || project.trim().length > 1);
 
@@ -173,7 +163,7 @@ export function App() {
           <h2><Plug size={18} /> Step 1 · Connect to OpenCode</h2>
           <p className="muted">
             SkillForge talks to the exact OpenCode already installed on this machine — same providers, same sign-ins. Nothing is stored here.
-            If this step fails, fix it here first; everything else depends on it.
+            Templates work without AI generation. A connection helps verify installs.
           </p>
           {statusError && <p className="bad">Could not check OpenCode: {statusError}</p>}
           {status && !statusError && (
@@ -188,31 +178,17 @@ export function App() {
           {status?.modelsError && <p className="bad">Models: {status.modelsError}</p>}
           {status?.skillsError && <p className="bad">Skills: {status.skillsError}</p>}
 
-          <label className="field">
-            <span>Model to use for generation (optional)</span>
-            <select value={modelKey} onChange={(e) => setModelKey(e.target.value)}>
-              <option value="">OpenCode default (recommended)</option>
-              {(status?.models ?? []).map((m) => (
-                <option key={`${m.providerID}/${m.modelID}`} value={`${m.providerID}/${m.modelID}`}>
-                  {m.name} · {m.providerID}/{m.modelID}
-                </option>
-              ))}
-            </select>
-            <small className="hint">Works the same with GPT, Grok, Gemini, or any provider you have connected — the output is a plain Markdown file.</small>
-          </label>
-
           <div className="actions">
             <button className="btn secondary" onClick={() => void refreshStatus()} disabled={statusBusy}>
               {statusBusy ? <Loader2 size={16} className="spin" /> : null} Re-check connection
             </button>
-            <button className="btn primary" onClick={() => goTo(2)} disabled={!connected}>
+            <button className="btn primary" onClick={() => goTo(2)}>
               Continue <ArrowDown size={16} />
             </button>
           </div>
           {!connected && !statusBusy && (
             <p className="hint">
-              Tip: open a terminal and run <code>opencode --version</code>. If that works but SkillForge cannot reach it, click “Re-check connection”.
-              You can still browse and edit drafts, but generation and install-verification need OpenCode.
+              Tip: open a terminal and run <code>opencode --version</code>. If it’s not connected, you can still pick a template, edit it, and export a ZIP — install verification works best when OpenCode is reachable.
             </p>
           )}
         </section>
@@ -250,52 +226,13 @@ export function App() {
 
       {step === 3 && (
         <section className="card">
-          <h2><Sparkles size={18} /> Step 3 · Create the skill</h2>
-          <p className="muted">Pick one. All three end up in the same editor in Step 4.</p>
+          <h2>Step 3 · Pick a template</h2>
+          <p className="muted">
+            Choose a built-in template (no AI generation, no API key needed). You can edit everything in Step 4 before installing.
+          </p>
 
           <div className="subcard">
-            <h3>Option A · Describe it, AI writes it</h3>
-            <label className="field">
-              <span>What should this skill do?</span>
-              <textarea
-                rows={4}
-                value={goal}
-                onChange={(e) => setGoal(e.target.value)}
-                placeholder="e.g. Review pull requests for security issues and missing tests, then summarize the top 3 risks."
-              />
-              <small className="hint">{goal.trim().length} / at least 12 characters. Be specific: name the files, tools, or checks it should use.</small>
-            </label>
-            <fieldset className="field">
-              <legend>Length (shorter = fewer tokens, faster, works well on every model)</legend>
-              <div className="radio-row">
-                <label><input type="radio" name="budget" checked={budget === "lean"} onChange={() => setBudget("lean")} /> Lean — ~350 words (recommended)</label>
-                <label><input type="radio" name="budget" checked={budget === "standard"} onChange={() => setBudget("standard")} /> Standard — ~700 words</label>
-                <label><input type="radio" name="budget" checked={budget === "detailed"} onChange={() => setBudget("detailed")} /> Detailed — up to 1400 words</label>
-              </div>
-            </fieldset>
-            <button
-              className="btn primary"
-              disabled={generating || goal.trim().length < 12}
-              onClick={() => void run(async () => {
-                setGenerating(true);
-                try {
-                  const res = await api.generate({ goal, budget, model: selectedModel, suggestedId: null });
-                  setDraft(res.draft);
-                  setValidation(res.validation);
-                  setInstallResult(null);
-                  setNotice("Draft ready. Review it in Step 4 before installing — nothing is saved to OpenCode yet.");
-                  goTo(4);
-                } finally {
-                  setGenerating(false);
-                }
-              })}
-            >
-              {generating ? <Loader2 size={16} className="spin" /> : <Sparkles size={16} />} Generate draft
-            </button>
-          </div>
-
-          <div className="subcard">
-            <h3>Option B · Start from a proven template</h3>
+            <h3>Built-in templates</h3>
             <div className="templates">
               {templates.map((t) => (
                 <article key={t.id} className="template">
@@ -303,7 +240,7 @@ export function App() {
                   <span>{t.tagline}</span>
                   <code className="mono small">{t.id}</code>
                   <button
-                    className="btn secondary"
+                    className="btn primary"
                     onClick={() => { setDraft({ ...t, source: "template" }); setInstallResult(null); setNotice(`Template "${t.name}" loaded. Edit it in Step 4.`); goTo(4); }}
                   >
                     Use this template
@@ -315,9 +252,9 @@ export function App() {
           </div>
 
           <div className="subcard">
-            <h3>Option C · Write it yourself</h3>
+            <h3>Write it yourself</h3>
             <p className="muted">Start from a blank skill and write in Step 4.</p>
-            <button className="btn secondary" onClick={() => { setDraft({ id: slugify(goal || "my-skill"), name: "My Skill", description: "", files: [{ path: "SKILL.md", content: "---\nname: My Skill\ndescription: \n---\n\n## Workflow\n\n1. \n" }], source: "manual" }); goTo(4); }}>
+            <button className="btn secondary" onClick={() => { setDraft({ id: slugify("my-skill"), name: "My Skill", description: "", files: [{ path: "SKILL.md", content: "---\nname: My Skill\ndescription: \n---\n\n## Workflow\n\n1. \n\n## Rules\n\n- \n" }], source: "manual" }); goTo(4); }}>
               Start blank
             </button>
           </div>

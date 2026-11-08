@@ -12,7 +12,6 @@ import {
   applyDocMoves,
   coerceDraft,
   exists,
-  extractDraftJson,
   globalSkillsRoot,
   installSkill,
   undoDocMoves,
@@ -20,8 +19,6 @@ import {
   type InstallScope,
 } from "./lib/install.js";
 import {
-  generateText,
-  generationPrompt,
   getInfo,
   getVersion,
   listModels,
@@ -86,36 +83,15 @@ app.get("/api/templates", (_req, res) => {
   res.json({ templates: TEMPLATES });
 });
 
-// ---- generate ---------------------------------------------------------------
+// ---- generate (disabled) -----------------------------------------------------
+// AI generation is intentionally disabled for now. Use built-in templates in Step 3.
 
-app.post("/api/generate", async (req, res) => {
-  const body = (req.body ?? {}) as Record<string, unknown>;
-  const goal = typeof body.goal === "string" ? body.goal.trim() : "";
-  if (goal.length < 12) {
-    fail(res, 400, "Describe the skill in at least one short sentence (12+ characters) — e.g. \"Review pull requests for security issues and missing tests\".");
-    return;
-  }
-  const budget = body.budget === "detailed" || body.budget === "standard" ? body.budget : "lean";
-  const model =
-    body.model && typeof body.model === "object" && "providerID" in body.model && "modelID" in body.model
-      ? { providerID: String((body.model as Record<string, unknown>).providerID), modelID: String((body.model as Record<string, unknown>).modelID) }
-      : null;
-  const suggestedId = typeof body.suggestedId === "string" && body.suggestedId.trim() ? slugify(body.suggestedId) : null;
-
-  try {
-    const { text } = await generateText(generationPrompt(goal, suggestedId, budget), model);
-    const parsed = extractDraftJson(text);
-    const coerced = coerceDraft(parsed, slugify(goal));
-    if (!coerced) {
-      fail(res, 502, `The model did not return the expected JSON. It replied: ${text.slice(0, 300)}… Try a shorter goal or another model.`);
-      return;
-    }
-    const draft: SkillDraft = { ...coerced, id: slugify(coerced.id), source: "ai" };
-    const validation = validateSkill(draft);
-    res.json({ draft, validation, raw: text.slice(0, 2000) });
-  } catch (err) {
-    fail(res, 502, `Generation failed. ${messageOf(err)} If it mentions an expired key or 401, pick a different model in Step 1 (the default provider's key may have expired) or re-sign in with /connect in OpenCode.`);
-  }
+app.post("/api/generate", (_req, res) => {
+  fail(
+    res,
+    410,
+    "AI generation is turned off for now. Go to Step 3 and pick a built-in template (no API key needed), or choose Start blank and write your own.",
+  );
 });
 
 // ---- validate ---------------------------------------------------------------

@@ -21,20 +21,15 @@ ships with **25 templates** (no AI generation, no API key required), including:
 Pick one, review/edit in **Step 4**, then install. This is the best path when a
 provider key is missing/expired or you just want a solid starting point.
 
-## Example: build a "PR reviewer" skill
+## Example: install a "PR reviewer" skill (from a template)
 
 1. **Step 2** — Global (you will reuse this everywhere).
-2. **Step 3** — goal: *"Review pull requests for security issues and missing
-   tests. Output findings as file:line with severity and a one-line fix, then
-   an approve/request-changes verdict."* Length: Lean. Generate.
-3. **Step 4** — read the checks. A good draft shows:
-   - description under 200 chars starting with the action ("Review… Use when…")
-   - total ~100–200 tokens
-   - no errors. Fix any ⛔ item before installing.
-4. Click **Install into OpenCode (global)**. Success means OpenCode already
-   lists the skill — verify with `opencode api get /api/skill`.
-5. Try it in OpenCode: type `@pr-reviewer` in a prompt, or just ask
-   "review this PR" and watch the model load the skill by itself.
+2. **Step 3** — choose **`code-review`** (or a similar template). Click **Use this template**.
+3. **Step 4** — adjust the ID/name/description to fit (e.g. make it PR-focused). Check the live validation:
+   - description under ~200 chars with a clear `Use when…` trigger
+   - no ⛔ errors before installing.
+4. Click **Install into OpenCode (global)**. Success means OpenCode can list the skill — verify with `opencode api get /api/skill`.
+5. Try it in OpenCode: type `@<your-skill-id>` in a prompt, or ask for a PR/code review and let the model load it.
 
 ## Example: tidy a messy project
 

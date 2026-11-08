@@ -4,7 +4,7 @@
   "private": false,
   "type": "module",
   "description": "Local OpenCode skill studio: 25 no-generation templates, validate/install skills, and tidy docs safely.",
-  "license": "MIT",
+  "license": "Unlicense",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/WilliamMajanja/OSF.git"

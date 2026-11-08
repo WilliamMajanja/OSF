@@ -96,11 +96,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   status: () => request<StatusResponse>("/api/status"),
   templates: () => request<{ templates: Template[] }>("/api/templates"),
-  generate: (payload: { goal: string; budget: "lean" | "standard" | "detailed"; model: { providerID: string; modelID: string } | null; suggestedId: string | null }) =>
-    request<{ draft: SkillDraft; validation: ValidationResult }>(
-      "/api/generate",
-      { method: "POST", body: JSON.stringify(payload) },
-    ),
   validateDraft: (draft: SkillDraft) => request<ValidationResult>("/api/validate", { method: "POST", body: JSON.stringify({ draft }) }),
   installCheck: (scope: "global" | "project", project: string, id: string) =>
     request<{ target: string | null; exists: boolean; note: string }>(
